@@ -1,147 +1,216 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" type="image/x-icon" href="https://www.infragistics.com/assets/favicon/favicon.ico">
-    <title>IMAGE RESPONSIVE GENERATOR</title>
-
-    <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"></script>
+    <meta name="description" content="Genera el HTML de una imagen responsive (srcset, sizes y lazy loading) a partir de una URL base.">
+    <title>Responsive Image Generator</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2"
-        crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.5/dist/umd/popper.min.js"
-        integrity="sha384-Xe+8cL9oJa6tN/veChSP7q+mnSPaj5Bcu9mPX5F5xIGE0DVittaqT5lorf0EI7Vk"
-        crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.min.js"
-        integrity="sha384-kjU+l4N0Yf4ZOJErLsIcvOU2qSb74wXpOhqTvwVx3OElZRweTnQ6d31fXEoRD1Jy"
-        crossorigin="anonymous"></script>
+    <style>
+        #output { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .85rem; min-height: 11rem; }
+        #preview img { max-width: 100%; height: auto; }
+        .preview-box { min-height: 8rem; background: #f8f9fa; border: 1px dashed #ced4da; border-radius: .375rem; }
+    </style>
 </head>
 
 <body>
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-5">
-                <div class="mb-3">
-                    <label for="urlGeneral" class="form-label">Url</label>
-                    <input type="text" class="form-control imageGenerator" id="urlGeneral" placeholder="URL">
+    <main class="container py-5">
+        <h1 class="h3 mb-1">Responsive Image Generator</h1>
+        <p class="text-muted mb-4">
+            Escribe la URL base de una imagen que exista en varios anchos
+            (<code>.../foto-480.png</code>, <code>.../foto-768.png</code>, ...) y copia el HTML con
+            <code>srcset</code>, <code>sizes</code> y lazy loading listo para pegar.
+        </p>
+
+        <div class="row g-4">
+            <form class="col-lg-6" id="form" autocomplete="off">
+                <div class="row g-2 mb-3">
+                    <div class="col-9">
+                        <label for="url" class="form-label">URL base <small class="text-muted">(sin ancho ni extensión)</small></label>
+                        <input type="text" class="form-control" id="url" required
+                            placeholder="https://example.com/img/hero-">
+                    </div>
+                    <div class="col-3">
+                        <label for="type" class="form-label">Formato</label>
+                        <select class="form-select" id="type">
+                            <option value=".png" selected>png</option>
+                            <option value=".jpg">jpg</option>
+                            <option value=".webp">webp</option>
+                            <option value=".avif">avif</option>
+                            <option value=".gif">gif</option>
+                            <option value=".svg">svg</option>
+                        </select>
+                    </div>
                 </div>
+
                 <div class="mb-3">
                     <label for="alt" class="form-label">ALT</label>
-                    <input type="text" class="form-control imageGenerator" id="alt" placeholder="ALT">
+                    <input type="text" class="form-control" id="alt" placeholder="Descripción de la imagen">
                 </div>
                 <div class="mb-3">
-                    <label for="title" class="form-label">TITLE</label>
-                    <input type="text" class="form-control" id="title" placeholder="TITLE">
+                    <label for="title" class="form-label">TITLE <small class="text-muted">(opcional)</small></label>
+                    <input type="text" class="form-control" id="title">
                 </div>
+
+                <fieldset class="mb-3">
+                    <legend class="form-label fs-6">Anchos disponibles</legend>
+                    <div id="sizes" class="d-flex flex-wrap gap-3 mb-2"></div>
+                    <input type="text" class="form-control form-control-sm" id="customSizes"
+                        placeholder="Otros anchos separados por coma, ej: 320, 2400">
+                </fieldset>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label for="defaultWidth" class="form-label">Ancho por defecto (<code>data-src</code>)</label>
+                        <input type="number" class="form-control" id="defaultWidth" value="768" min="1">
+                    </div>
+                    <div class="col-6">
+                        <label for="lazySuffix" class="form-label">Sufijo del placeholder</label>
+                        <input type="text" class="form-control" id="lazySuffix" value="-lazy-load">
+                    </div>
+                </div>
+
                 <div class="mb-3">
-                    <label for="sizes" class="form-label">Sizes</label>
-                    <select type="text" class="form-control" id="sizes" multiple style="height: 150px;">
-                        <option value="480">480</option>
-                        <option value="768">768</option>
-                        <option value="960">960</option>
-                        <option value="1100">1100</option>
-                        <option value="1600">1600</option>
-                        <option value="1920">1920</option>
-                    </select>
+                    <label for="sizesAttr" class="form-label">Atributo <code>sizes</code></label>
+                    <input type="text" class="form-control" id="sizesAttr"
+                        value="(max-width: 768px) 100vw, (max-width: 1100px) and (min-width: 769px) 50vw, 600px">
                 </div>
 
+                <fieldset class="mb-3">
+                    <legend class="form-label fs-6">Clases CSS</legend>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input cls" type="checkbox" id="cls_lazy" value="b-lazy" checked>
+                        <label class="form-check-label" for="cls_lazy">b-lazy (lazy loading con <a href="https://github.com/dinbror/blazy" target="_blank" rel="noopener">bLazy</a>)</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input cls" type="checkbox" id="cls_fluid" value="img-fluid" checked>
+                        <label class="form-check-label" for="cls_fluid">img-fluid</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input cls" type="radio" name="oversize" id="os_none" value="" checked>
+                        <label class="form-check-label" for="os_none">sin oversize</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input cls" type="radio" name="oversize" id="os_left" value="img--lg-oversize-left">
+                        <label class="form-check-label" for="os_left">img--lg-oversize-left</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input cls" type="radio" name="oversize" id="os_right" value="img--lg-oversize-right">
+                        <label class="form-check-label" for="os_right">img--lg-oversize-right</label>
+                    </div>
+                </fieldset>
+            </form>
 
-                <div class="form-check form-switch">
-                    <input class="form-check-input img_css_generate" type="checkbox" id="img_class_blazy" value="b-lazy"
-                        checked>
-                    <label class="form-check-label" for="img_class_blazy">b-lazy</label>
+            <section class="col-lg-6">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h2 class="h5 mb-0">HTML generado</h2>
+                    <button type="button" class="btn btn-primary btn-sm" id="copy">Copiar</button>
                 </div>
-                <div class="form-check form-switch">
-                    <input class="form-check-input img_css_generate" type="checkbox" id="img_class_fluid"
-                        value="img-fluid" checked>
-                    <label class="form-check-label" for="img_class_fluid">img-fluid</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input img_css_generate" type="radio" name="oversize" id="oversize_left"
-                        value="img--lg-oversize-left">
-                    <label class="form-check-label" for="oversize_left">
-                        img--lg-oversize-left
-                    </label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input img_css_generate" type="radio" name="oversize" id="oversize_right"
-                        value="img--lg-oversize-right">
-                    <label class="form-check-label" for="oversize_right">
-                        img--lg-oversize-right
-                    </label>
-                </div>
+                <textarea id="output" class="form-control mb-3" readonly spellcheck="false"
+                    placeholder="Completa la URL base para generar el código."></textarea>
 
-                <button type="submit" class="btn btn-primary my-3" id="generate">Generate</button>
-
-                <div id="copyImageCode"><img id="image"></div>
-
-                <!-- <img class="b-lazy img-fluid img--lg-oversize img--lg-oversize-right" src="https://static.infragistics.com/marketing/slingshot/use-cases/executive-team/slingshot-executive-team-stay-unified-all-in-one-768-lazy-load.png" alt="Stay unified and all-in-one using Slingshot pins for content management" title="Stay unified and all-in-one using Slingshot pins for content management" sizes="(max-width: 768px) 100vw, (max-width: 1100px) and (min-width: 769px) 50vw, 600px" data-src="https://static.infragistics.com/marketing/slingshot/use-cases/executive-team/slingshot-executive-team-stay-unified-all-in-one-768.png" data-srcset="https://static.infragistics.com/marketing/slingshot/use-cases/executive-team/slingshot-executive-team-stay-unified-all-in-one-480.png 480w, https://static.infragistics.com/marketing/slingshot/use-cases/executive-team/slingshot-executive-team-stay-unified-all-in-one-768.png 768w, https://static.infragistics.com/marketing/slingshot/use-cases/executive-team/slingshot-executive-team-stay-unified-all-in-one-960.png 960w, https://static.infragistics.com/marketing/slingshot/use-cases/executive-team/slingshot-executive-team-stay-unified-all-in-one-1100.png 1100w, https://static.infragistics.com/marketing/slingshot/use-cases/executive-team/slingshot-executive-team-stay-unified-all-in-one-1600.png 1600w, https://static.infragistics.com/marketing/slingshot/use-cases/executive-team/slingshot-executive-team-stay-unified-all-in-one-1920.png 1920w"> -->
-            </div>
+                <h2 class="h5">Vista previa</h2>
+                <div id="preview" class="preview-box d-flex align-items-center justify-content-center p-2 text-muted">
+                    Sin imagen
+                </div>
+                <p class="small text-muted mt-2 mb-0">
+                    La vista previa usa el ancho por defecto como <code>src</code>. Si la imagen no carga,
+                    revisa que la URL base tenga el formato <code>base + ancho + extensión</code>.
+                </p>
+            </section>
         </div>
-    </div>
-
+    </main>
 
     <script>
-        $('input.imageGenerator').blur(function () {
-            getImageData();
-        });
-        $('#generate').click(function () {
-            getImageData();
-            copyClipboard("#copyImageCode");
+        const $ = (id) => document.getElementById(id);
+        const DEFAULT_SIZES = [480, 768, 960, 1100, 1600, 1920];
+
+        // Casillas de anchos
+        DEFAULT_SIZES.forEach((w) => {
+            const label = document.createElement('label');
+            label.className = 'form-check-label d-flex align-items-center gap-1';
+            label.innerHTML = '<input class="form-check-input mt-0 size" type="checkbox" value="' + w + '"> ' + w;
+            $('sizes').appendChild(label);
         });
 
-        function imgCssGenerate() {
-            const img = $("#image");
-            let imgClass = "";
-
-            $(".img_css_generate").each(function () {
-                if ($(this).is(':checked') && $(this).val() != "") {
-                    imgClass += " " + $(this).val();
-                }
-            });
-            img.attr("class", imgClass.substring(1));
+        function esc(s) {
+            return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         }
-        function getImageData() {
-            imgCssGenerate();
-            const img = $("#image");
-            let url = $("#urlGeneral").val();
-            let alt = $("#alt").val();
-            let title = $("#title").val();
-            let sizes = $("#sizes").val();
-            if (url != "") {
-                img.attr("src", url + "768-lazy-load.png");
-                img.attr("data-src", url + "768.png");
-                img.attr("sizes", "(max-width: 768px) 100vw, (max-width: 1100px) and (min-width: 769px) 50vw, 600px");
-                img.attr("alt", alt);
-                img.attr("title", title);
-                //img.removeAttr("data-srcset");
-                img.attr("data-srcset", "");
-                $('#sizes :selected').each(function (i, sel) {
-                    let datasrcset = img.attr("data-srcset");
-                    let urlComplete = url + $(sel).val() + ".png " + $(sel).val() + "w";
-                    let plus = datasrcset + urlComplete;
-                    console.log(i + " - " + $(sel).val() + " - " + $('#sizes :selected').length);
-                    img.attr("data-srcset", plus);
-                    if ($('#sizes :selected').length > 0 && i < $('#sizes :selected').length - 1) {
-                        img.attr("data-srcset", img.attr("data-srcset") + ", ");
-                    }
-                });
+
+        function selectedSizes() {
+            const checked = [...document.querySelectorAll('.size:checked')].map((c) => Number(c.value));
+            const custom = $('customSizes').value.split(',').map((s) => Number(s.trim()))
+                .filter((n) => Number.isInteger(n) && n > 0);
+            return [...new Set([...checked, ...custom])].sort((a, b) => a - b);
+        }
+
+        function classes() {
+            return [...document.querySelectorAll('.cls')]
+                .filter((el) => el.checked && el.value)
+                .map((el) => el.value).join(' ');
+        }
+
+        function buildHtml() {
+            const url = $('url').value.trim();
+            if (!url) return '';
+            const type = $('type').value;
+            const w = Number($('defaultWidth').value) || 768;
+            const lazy = classes().split(' ').includes('b-lazy');
+            const srcset = selectedSizes().map((s) => url + s + type + ' ' + s + 'w').join(', ');
+
+            const attrs = [];
+            const cls = classes();
+            if (cls) attrs.push(['class', cls]);
+            // Con bLazy el src es el placeholder liviano y la imagen real va en data-src
+            attrs.push(['src', lazy ? url + w + $('lazySuffix').value + type : url + w + type]);
+            if ($('sizesAttr').value.trim()) attrs.push(['sizes', $('sizesAttr').value.trim()]);
+            attrs.push(['alt', $('alt').value]);
+            if ($('title').value.trim()) attrs.push(['title', $('title').value.trim()]);
+            if (lazy) {
+                attrs.push(['data-src', url + w + type]);
+                if (srcset) attrs.push(['data-srcset', srcset]);
+            } else if (srcset) {
+                attrs.push(['srcset', srcset]);
             }
+            return '<img ' + attrs.map(([k, v]) => k + '="' + esc(v) + '"').join(' ') + '>';
         }
-        function copyClipboard(element) {
-            var $bridge = $("<input>")
-            $("body").append($bridge);
-            let values = $(element).html();
-            values=values.replace(/\ id="image"/g, '')
-            $bridge.val(values).select();
-            document.execCommand("copy");
-            $bridge.remove();
+
+        function render() {
+            const html = buildHtml();
+            $('output').value = html;
+            const url = $('url').value.trim();
+            const box = $('preview');
+            if (!url) {
+                box.textContent = 'Sin imagen';
+                return;
+            }
+            const img = document.createElement('img');
+            img.alt = $('alt').value;
+            img.src = url + (Number($('defaultWidth').value) || 768) + $('type').value;
+            img.onerror = () => { box.textContent = 'No se pudo cargar la imagen con esa URL.'; };
+            box.replaceChildren(img);
         }
+
+        async function copy() {
+            const text = $('output').value;
+            if (!text) return;
+            try {
+                await navigator.clipboard.writeText(text);
+            } catch (e) {
+                $('output').select();
+                document.execCommand('copy');
+            }
+            const btn = $('copy');
+            btn.textContent = '¡Copiado!';
+            setTimeout(() => { btn.textContent = 'Copiar'; }, 1500);
+        }
+
+        $('form').addEventListener('input', render);
+        $('form').addEventListener('submit', (e) => e.preventDefault());
+        $('copy').addEventListener('click', copy);
+        render();
     </script>
 </body>
 
