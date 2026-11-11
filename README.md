@@ -1,5 +1,7 @@
 # Responsive Image Generator
 
+**Demo en vivo: https://gusdv16.github.io/img_generator/**
+
 Herramienta web de una sola página que genera el HTML de una imagen responsive (`srcset`, `sizes` y lazy loading) a partir de una URL base. Nació como utilidad interna para cargar imágenes en un sitio de marketing, donde pegar a mano seis anchos por imagen era lento y propenso a errores.
 
 ## Cómo se usa
