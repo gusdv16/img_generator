@@ -4,6 +4,8 @@
 
 Herramienta web de una sola página que genera el HTML de una imagen responsive (`srcset`, `sizes` y lazy loading) a partir de una URL base. Nació como utilidad interna para cargar imágenes en un sitio de marketing, donde pegar a mano seis anchos por imagen era lento y propenso a errores.
 
+<img src="docs/screenshot.png" alt="Captura de la herramienta" width="800">
+
 ## Cómo se usa
 
 1. Escribe la **URL base**, sin ancho ni extensión. Por ejemplo, si existen `https://example.com/img/hero-480.png`, `hero-768.png`, etc., la base es `https://example.com/img/hero-`.
